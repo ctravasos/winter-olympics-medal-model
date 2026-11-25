@@ -1,0 +1,1448 @@
+---
+title: "Ski"
+output: html_document
+date: "2026-01-13"
+---
+
+Past Competitions
+Load Results
+```{r}
+
+
+AE_ski_m <- read.csv("C:/Users/c.travasos/Downloads/Olympics/Ski/FreeSki - M Aerials.csv")
+AE_ski_w <- read.csv("C:/Users/c.travasos/Downloads/Olympics/Ski/FreeSki - W Aerials.csv")
+
+MO_ski_m <- read.csv("C:/Users/c.travasos/Downloads/Olympics/Ski/FreeSki - M Moguls.csv")
+MO_ski_w <- read.csv("C:/Users/c.travasos/Downloads/Olympics/Ski/FreeSki - W Moguls.csv")
+
+HP_ski_m <- read.csv("C:/Users/c.travasos/Downloads/Olympics/Ski/FreeSki - M Halfpipe.csv")
+HP_ski_w <- read.csv("C:/Users/c.travasos/Downloads/Olympics/Ski/FreeSki - W Halfpipe.csv")
+
+SS_ski_m <- read.csv("C:/Users/c.travasos/Downloads/Olympics/Ski/FreeSki - M Slopestyle.csv")
+SS_ski_w <- read.csv("C:/Users/c.travasos/Downloads/Olympics/Ski/FreeSki - W Slopestyle.csv")
+
+BA_ski_m <- read.csv("C:/Users/c.travasos/Downloads/Olympics/Ski/FreeSki - M Big Air.csv")
+BA_ski_w <- read.csv("C:/Users/c.travasos/Downloads/Olympics/Ski/FreeSki - W Big Air.csv")
+
+CS_ski_m <- read.csv("C:/Users/c.travasos/Downloads/Olympics/Ski/FreeSki - M Cross.csv")
+CS_ski_w <- read.csv("C:/Users/c.travasos/Downloads/Olympics/Ski/FreeSki - W Cross.csv")
+
+
+```
+
+Clean Results
+```{r}
+library(dplyr)
+
+clean_df <- function(df) {
+
+  df <- df %>%
+    select(where(~ !all(is.na(.))))
+
+  colnames(df) <- make.names(as.character(unlist(df[1, ])), unique = TRUE)
+
+  df <- df[-1, ]
+
+  if (ncol(df) > 10) {
+    df <- df[, seq_len(ncol(df) - 10)]
+  }
+  
+  if (ncol(df) >= 1) {
+    df <- df[, -1]
+  }
+  
+  df <- df[, -2]
+
+  return(df)
+}
+
+AE_ski_m <- clean_df(AE_ski_m)
+AE_ski_w <- clean_df(AE_ski_w)
+
+MO_ski_m <- clean_df(MO_ski_m)
+MO_ski_w <- clean_df(MO_ski_w)
+
+HP_ski_m <- clean_df(HP_ski_m)
+HP_ski_w <- clean_df(HP_ski_w)
+
+SS_ski_m <- clean_df(SS_ski_m)
+SS_ski_w <- clean_df(SS_ski_w)
+
+BA_ski_m <- clean_df(BA_ski_m)
+BA_ski_w <- clean_df(BA_ski_w)
+
+CS_ski_m <- clean_df(CS_ski_m)
+CS_ski_w <- clean_df(CS_ski_w)
+```
+
+Avg position
+```{r}
+library(dplyr)
+library(tidyr)
+
+analyze_df_summary <- function(df) {
+  
+  df_long <- df %>%
+    mutate(position = row_number()) %>%    
+    pivot_longer(
+      cols = -position,
+      names_to = "event",
+      values_to = "athlete"
+    ) %>%
+    filter(!is.na(athlete) & athlete != "")  
+  
+  df_summary <- df_long %>%
+    group_by(athlete) %>%
+    summarise(
+      average_position = mean(position),
+      best_finish = min(position),
+      worst_finish = max(position),
+      events_participated = n(),
+      .groups = "drop"
+    ) %>%
+    arrange(average_position)   
+  
+  return(df_summary)
+}
+
+EA_ski_m_summary <- analyze_df_summary(AE_ski_m)
+AE_ski_w_summary <- analyze_df_summary(AE_ski_w)
+
+MO_ski_m_summary <- analyze_df_summary(MO_ski_m)
+MO_ski_w_summary <- analyze_df_summary(MO_ski_w)
+
+HP_ski_m_summary <- analyze_df_summary(HP_ski_m)
+HP_ski_w_summary <- analyze_df_summary(HP_ski_w)
+
+SS_ski_m_summary <- analyze_df_summary(SS_ski_m)
+SS_ski_w_summary <- analyze_df_summary(SS_ski_w)
+
+BA_ski_m_summary <- analyze_df_summary(BA_ski_m)
+BA_ski_w_summary <- analyze_df_summary(BA_ski_w)
+
+CS_ski_m_summary <- analyze_df_summary(CS_ski_m)
+CS_ski_w_summary <- analyze_df_summary(CS_ski_w)
+```
+
+
+25/26 World Cup Events
+Load Scores
+```{r}
+
+X_AE_ski_m <- read.csv("C:/Users/c.travasos/Downloads/Olympics/Ski/FreeSki Tricks - M Aerials.csv")
+X_AE_ski_w <- read.csv("C:/Users/c.travasos/Downloads/Olympics/Ski/FreeSki Tricks - W Aerials.csv")
+
+X_MO_ski_m <- read.csv("C:/Users/c.travasos/Downloads/Olympics/Ski/FreeSki Tricks - M Moguls.csv")
+X_MO_ski_w <- read.csv("C:/Users/c.travasos/Downloads/Olympics/Ski/FreeSki Tricks - W Moguls.csv")
+
+X_HP_ski_m <- read.csv("C:/Users/c.travasos/Downloads/Olympics/Ski/FreeSki Tricks - M Halfpipe.csv")
+X_HP_ski_w <- read.csv("C:/Users/c.travasos/Downloads/Olympics/Ski/FreeSki Tricks - W Halfpipe.csv")
+
+X_SS_ski_m <- read.csv("C:/Users/c.travasos/Downloads/Olympics/Ski/FreeSki Tricks - M Slopestyle.csv")
+X_SS_ski_w <- read.csv("C:/Users/c.travasos/Downloads/Olympics/Ski/FreeSki Tricks - W Slopestyle.csv")
+
+X_BA_ski_m <- read.csv("C:/Users/c.travasos/Downloads/Olympics/Ski/FreeSki Tricks - M Big Air.csv")
+X_BA_ski_w <- read.csv("C:/Users/c.travasos/Downloads/Olympics/Ski/FreeSki Tricks - W Big Air.csv")
+
+
+```
+
+Clean Scores
+```{r}
+clean_df_x <- function(df) {
+  colnames(df) <- df[1, ]
+  df <- df[-1, ]
+  rownames(df) <- NULL
+
+  score_counter <- 1
+  for(i in seq_along(df)) {
+    numeric_test <- suppressWarnings(as.numeric(as.character(df[[i]])))
+    if(sum(!is.na(numeric_test)) > 0) { 
+      df[[i]] <- numeric_test
+      colnames(df)[i] <- paste0("Score", score_counter)
+      score_counter <- score_counter + 1
+    }
+  }
+
+  df <- df[, !sapply(df, function(x) all(is.na(x)))]
+
+  return(df)
+}
+
+X_AE_ski_m <- clean_df_x(X_AE_ski_m)
+X_AE_ski_w <- clean_df_x(X_AE_ski_w)
+
+X_MO_ski_m <- clean_df_x(X_MO_ski_m)
+X_MO_ski_w <- clean_df_x(X_MO_ski_w)
+
+X_HP_ski_m <- clean_df_x(X_HP_ski_m)
+X_HP_ski_w <- clean_df_x(X_HP_ski_w)
+
+X_SS_ski_m <- clean_df_x(X_SS_ski_m)
+X_SS_ski_w <- clean_df_x(X_SS_ski_w)
+
+X_BA_ski_m <- clean_df_x(X_BA_ski_m)
+X_BA_ski_w <- clean_df_x(X_BA_ski_w)
+
+```
+
+Pivot
+```{r}
+pivot_scores <- function(df) {
+
+    score_cols <- grep("^Score", colnames(df))
+  
+  name_cols <- setdiff(seq_along(df), score_cols)
+  
+  all_names <- c()
+  all_scores <- c()
+  
+  for(i in seq_along(name_cols)) {
+    names_vec <- df[[name_cols[i]]]
+    scores_vec <- df[[score_cols[i]]]
+    
+    keep <- !is.na(names_vec) & !is.na(scores_vec)
+    
+    all_names <- c(all_names, names_vec[keep])
+    all_scores <- c(all_scores, scores_vec[keep])
+  }
+  
+  new_df <- data.frame(ALL = all_names, Score0 = all_scores, stringsAsFactors = FALSE)
+  
+  return(new_df)
+}
+
+
+
+```
+
+Normalize
+```{r}
+normalize_all <- function(df_list) {
+  for (df_name in df_list) {
+    df <- get(df_name)
+    
+    numeric_cols <- sapply(df, is.numeric)
+    df[, numeric_cols] <- lapply(df[, numeric_cols, drop = FALSE], function(x) {
+      max_val <- max(x, na.rm = TRUE)
+      if (max_val == 0 || is.na(max_val)) return(x)
+      return(x / max_val * 100)
+    })
+    
+    assign(paste0(df_name, "_norm"), df, envir = .GlobalEnv)
+  }
+}
+
+ski_datasets <- c(
+  "X_AE_ski_m", "X_AE_ski_w",
+  "X_MO_ski_m", "X_MO_ski_w",
+  "X_HP_ski_m", "X_HP_ski_w",
+  "X_SS_ski_m", "X_SS_ski_w",
+  "X_BA_ski_m", "X_BA_ski_w"
+)
+
+normalize_all(ski_datasets)
+
+
+```
+
+AVG Score per athlete
+```{r}
+X_AE_ski_m_WC <- pivot_scores(X_AE_ski_m)
+X_AE_ski_w_WC <- pivot_scores(X_AE_ski_w)
+
+X_MO_ski_m_WC <- pivot_scores(X_MO_ski_m)
+X_MO_ski_w_WC <- pivot_scores(X_MO_ski_w)
+
+X_HP_ski_m_WC <- pivot_scores(X_HP_ski_m)
+X_HP_ski_w_WC <- pivot_scores(X_HP_ski_w)
+
+X_SS_ski_m_WC <- pivot_scores(X_SS_ski_m)
+X_SS_ski_w_WC <- pivot_scores(X_SS_ski_w)
+
+X_BA_ski_m_WC <- pivot_scores(X_BA_ski_m)
+X_BA_ski_w_WC <- pivot_scores(X_BA_ski_w)
+
+
+X_AE_ski_m_WCavg <- aggregate(Score0 ~ ALL, data = X_AE_ski_m_WC, FUN = mean, na.rm = TRUE)
+X_AE_ski_w_WCavg <- aggregate(Score0 ~ ALL, data = X_AE_ski_w_WC, FUN = mean, na.rm = TRUE)
+
+X_MO_ski_m_WCavg <- aggregate(Score0 ~ ALL, data = X_MO_ski_m_WC, FUN = mean, na.rm = TRUE)
+X_MO_ski_w_WCavg <- aggregate(Score0 ~ ALL, data = X_MO_ski_w_WC, FUN = mean, na.rm = TRUE)
+
+X_HP_ski_m_WCavg <- aggregate(Score0 ~ ALL, data = X_HP_ski_m_WC, FUN = mean, na.rm = TRUE)
+X_HP_ski_w_WCavg <- aggregate(Score0 ~ ALL, data = X_HP_ski_w_WC, FUN = mean, na.rm = TRUE)
+
+X_SS_ski_m_WCavg <- aggregate(Score0 ~ ALL, data = X_SS_ski_m_WC, FUN = mean, na.rm = TRUE)
+X_SS_ski_w_WCavg <- aggregate(Score0 ~ ALL, data = X_SS_ski_w_WC, FUN = mean, na.rm = TRUE)
+
+X_BA_ski_m_WCavg <- aggregate(Score0 ~ ALL, data = X_BA_ski_m_WC, FUN = mean, na.rm = TRUE)
+X_BA_ski_w_WCavg <- aggregate(Score0 ~ ALL, data = X_BA_ski_w_WC, FUN = mean, na.rm = TRUE)
+
+
+
+
+X_AE_ski_m_norm_WC <- pivot_scores(X_AE_ski_m_norm)
+X_AE_ski_w_norm_WC <- pivot_scores(X_AE_ski_w_norm)
+
+X_MO_ski_m_norm_WC <- pivot_scores(X_MO_ski_m_norm)
+X_MO_ski_w_norm_WC <- pivot_scores(X_MO_ski_w_norm)
+
+X_HP_ski_m_norm_WC <- pivot_scores(X_HP_ski_m_norm)
+X_HP_ski_w_norm_WC <- pivot_scores(X_HP_ski_w_norm)
+
+X_SS_ski_m_norm_WC <- pivot_scores(X_SS_ski_m_norm)
+X_SS_ski_w_norm_WC <- pivot_scores(X_SS_ski_w_norm)
+
+X_BA_ski_m_norm_WC <- pivot_scores(X_BA_ski_m_norm)
+X_BA_ski_w_norm_WC <- pivot_scores(X_BA_ski_w_norm)
+
+
+X_AE_ski_m_norm_WCavg <- aggregate(Score0 ~ ALL, data = X_AE_ski_m_norm_WC, FUN = mean, na.rm = TRUE)
+X_AE_ski_w_norm_WCavg <- aggregate(Score0 ~ ALL, data = X_AE_ski_w_norm_WC, FUN = mean, na.rm = TRUE)
+
+X_MO_ski_m_norm_WCavg <- aggregate(Score0 ~ ALL, data = X_MO_ski_m_norm_WC, FUN = mean, na.rm = TRUE)
+X_MO_ski_w_norm_WCavg <- aggregate(Score0 ~ ALL, data = X_MO_ski_w_norm_WC, FUN = mean, na.rm = TRUE)
+
+X_HP_ski_m_norm_WCavg <- aggregate(Score0 ~ ALL, data = X_HP_ski_m_norm_WC, FUN = mean, na.rm = TRUE)
+X_HP_ski_w_norm_WCavg <- aggregate(Score0 ~ ALL, data = X_HP_ski_w_norm_WC, FUN = mean, na.rm = TRUE)
+
+X_SS_ski_m_norm_WCavg <- aggregate(Score0 ~ ALL, data = X_SS_ski_m_norm_WC, FUN = mean, na.rm = TRUE)
+X_SS_ski_w_norm_WCavg <- aggregate(Score0 ~ ALL, data = X_SS_ski_w_norm_WC, FUN = mean, na.rm = TRUE)
+
+X_BA_ski_m_norm_WCavg <- aggregate(Score0 ~ ALL, data = X_BA_ski_m_norm_WC, FUN = mean, na.rm = TRUE)
+X_BA_ski_w_norm_WCavg <- aggregate(Score0 ~ ALL, data = X_BA_ski_w_norm_WC, FUN = mean, na.rm = TRUE)
+
+```
+
+By Score Format
+```{r}
+sports <- c("AE", "MO", "HP", "SS", "BA")
+genders <- c("m", "w") 
+
+pad_to_max <- function(vec, len) {
+  length(vec) <- len
+  vec
+}
+
+sort_scores <- function(df) {
+  df[order(-df$Score0), ]
+}
+
+combine_datasets <- function(prefix) {
+  all_dfs <- list()
+  
+  for (sport in sports) {
+    for (gender in genders) {
+      df_name <- paste0("X_", sport, "_ski_", gender, "_", prefix)
+      
+      sorted_df <- sort_scores(get(df_name))
+      
+      key <- paste0(sport, gender)
+      
+      all_dfs[[paste0(key, "_Athlete")]] <- sorted_df$ALL
+      all_dfs[[paste0(key, "_Score")]]   <- sorted_df$Score0
+    }
+  }
+  
+  max_len <- max(sapply(all_dfs, length))
+  all_dfs_padded <- lapply(all_dfs, pad_to_max, len = max_len)
+  
+  as.data.frame(all_dfs_padded)
+}
+
+A_ski_WC        <- combine_datasets("WC")
+A_ski_WCavg     <- combine_datasets("WCavg")
+A_ski_norm_WC   <- combine_datasets("norm_WC")
+A_ski_norm_WCavg <- combine_datasets("norm_WCavg")
+
+
+```
+
+By Sport
+```{r}
+sports <- c("AE", "MO", "HP", "SS", "BA")
+genders <- c("m", "w")  
+
+pad_to_max <- function(vec, len) {
+  length(vec) <- len
+  vec
+}
+
+sort_scores <- function(df) {
+  df[order(-df$Score0), ]
+}
+
+combine_sport <- function(sport, gender) {
+  dataset_types <- c("WC", "WCavg", "norm_WC", "norm_WCavg")
+  combined <- list()
+  
+  for (dtype in dataset_types) {
+    df_name <- paste0("X_", sport, "_ski_", gender, "_", dtype)
+    
+    sorted_df <- sort_scores(get(df_name))
+    
+    combined[[paste0(dtype)]]        <- sorted_df$ALL
+    combined[[paste0(dtype, "_Score")]] <- sorted_df$Score0
+  }
+  
+  max_len <- max(sapply(combined, length))
+  combined_padded <- lapply(combined, pad_to_max, len = max_len)
+  
+  as.data.frame(combined_padded)
+}
+
+for (sport in sports) {
+  for (gender in genders) {
+    df_name <- paste0("AA_", sport, "_ski_", gender)
+    assign(df_name, combine_sport(sport, gender), envir = .GlobalEnv)
+  }
+}
+
+
+
+
+```
+
+
+medal prob1
+```{r}
+### --- Medal probability model (P_gold, P_podium) using NORMALIZED scores ---
+### Assumptions:
+### - Everyone in the discipline is competing
+### - No ties (we break ties with tiny random jitter)
+### - Any athlete outside top-25 by normalized mean gets P=0%
+### - Uses per-athlete Normal(mean, sd) estimated from X_*_norm_WC (pivoted normalized results)
+
+set.seed(123)
+
+# 1) Settings
+N_SIMS <- 20000
+sports  <- c("AE", "MO", "HP", "SS", "BA")
+genders <- c("m", "w")
+
+# 2) Utility: compute medal probabilities for one discipline (e.g., "X_AE_ski_m")
+medal_probs_norm <- function(base_name, n_sims = 20000, top_k = 25) {
+  # Expect these to exist from your pipeline:
+  #   <base_name>_norm_WC   (columns: ALL, Score0)  - multiple rows per athlete
+  norm_wc_name <- paste0(base_name, "_norm_WC")
+  if (!exists(norm_wc_name, envir = .GlobalEnv)) {
+    stop("Missing dataset: ", norm_wc_name, call. = FALSE)
+  }
+  norm_wc <- get(norm_wc_name, envir = .GlobalEnv)
+
+  # Basic checks
+  if (!all(c("ALL", "Score0") %in% names(norm_wc))) {
+    stop(norm_wc_name, " must have columns ALL and Score0.", call. = FALSE)
+  }
+
+  # Per-athlete mean + sd on normalized scores
+  stats <- aggregate(Score0 ~ ALL, data = norm_wc, FUN = function(x) c(mean = mean(x, na.rm = TRUE), sd = sd(x, na.rm = TRUE)))
+  stats <- data.frame(
+    Athlete = stats$ALL,
+    Mean    = stats$Score0[, "mean"],
+    SD      = stats$Score0[, "sd"],
+    stringsAsFactors = FALSE
+  )
+
+  # Clean SDs
+  stats$SD[is.na(stats$SD)] <- 0
+  stats$SD[stats$SD < 0] <- 0
+
+  # If fewer than 2 athletes, probabilities are not meaningful
+  if (nrow(stats) < 2) {
+    stats$P_gold   <- 0
+    stats$P_podium <- 0
+    return(stats[order(-stats$Mean), ])
+  }
+
+  # Top-K cutoff (by normalized mean)
+  stats <- stats[order(-stats$Mean), ]
+  in_top <- seq_len(min(top_k, nrow(stats)))
+  top_stats <- stats[in_top, , drop = FALSE]
+
+  # Simulate one "Olympic score" per athlete
+  # Add tiny jitter to force "no ties" behavior
+  nA <- nrow(top_stats)
+  means <- top_stats$Mean
+  sds   <- top_stats$SD
+
+  # Draw matrix: sims x athletes
+  draws <- matrix(rnorm(n_sims * nA, mean = rep(means, each = n_sims), sd = rep(sds, each = n_sims)),
+                  nrow = n_sims, ncol = nA)
+
+  # Optional: clamp scores to [0, 100] since normalized scale
+  draws[draws < 0]   <- 0
+  draws[draws > 100] <- 100
+
+  # Break ties deterministically with tiny noise (still reproducible with set.seed)
+  draws <- draws + matrix(runif(n_sims * nA, min = 0, max = 1e-9), nrow = n_sims)
+
+  # Gold: column with max each row
+  gold_idx <- max.col(draws, ties.method = "random")
+  gold_counts <- tabulate(gold_idx, nbins = nA)
+
+  # Podium: top 3 each row
+  top3_mat <- t(apply(draws, 1, function(x) order(x, decreasing = TRUE)[1:3]))
+  podium_counts <- tabulate(as.vector(top3_mat), nbins = nA)
+
+  # Convert to probabilities
+  top_stats$P_gold   <- gold_counts / n_sims
+  top_stats$P_podium <- podium_counts / n_sims
+
+  # Merge back into full list; outside top-K => 0
+  out <- stats
+  out$P_gold   <- 0
+  out$P_podium <- 0
+  match_idx <- match(top_stats$Athlete, out$Athlete)
+  out$P_gold[match_idx]   <- top_stats$P_gold
+  out$P_podium[match_idx] <- top_stats$P_podium
+
+  # Sort for readability (by P_gold then Mean)
+  out <- out[order(-out$P_gold, -out$Mean), ]
+  rownames(out) <- NULL
+  out
+}
+
+# 3) Run all 10 ski disciplines + assign outputs
+# Output objects:
+#   AAA_AE_ski_m_medal_probs, AAA_AE_ski_w_medal_probs, ..., AAA_BA_ski_w_medal_probs
+for (sport in sports) {
+  for (gender in genders) {
+    base_name <- paste0("X_", sport, "_ski_", gender)
+    out_name  <- paste0("AAA_", sport, "_ski_", gender, "_medal_probs1")
+
+    assign(out_name,
+           medal_probs_norm(base_name, n_sims = N_SIMS, top_k = 25),
+           envir = .GlobalEnv)
+  }
+}
+
+
+```
+
+medal prob 2
+```{r}
+# --- probs2: "ceiling-focused" probabilities ---
+# Idea: drop all normalized scores < 50 BEFORE computing each athlete's mean/SD,
+# then simulate P(gold) and P(podium) from those filtered (ceiling-ish) summaries.
+# Anyone outside top 25 by filtered mean gets P=0.
+
+set.seed(123)
+
+# 1) Inputs
+sports  <- c("AE", "MO", "HP", "SS", "BA")
+genders <- c("m", "w")
+MIN_SCORE <- 66
+N_SIMS <- 50000
+
+# 2) Build athlete-level summary after filtering low scores
+ceiling_summary <- function(long_df, min_score = 50) {
+  # long_df should have columns: ALL, Score0 (normalized 0-100)
+  df <- long_df[!is.na(long_df$ALL) & !is.na(long_df$Score0), ]
+  df <- df[df$Score0 >= min_score, ]
+
+  if (nrow(df) == 0) {
+    return(data.frame(
+      Athlete = character(0),
+      Mean = numeric(0),
+      SD = numeric(0),
+      n = integer(0),
+      stringsAsFactors = FALSE
+    ))
+  }
+
+  m <- aggregate(Score0 ~ ALL, data = df, FUN = mean, na.rm = TRUE)
+  s <- aggregate(Score0 ~ ALL, data = df, FUN = sd,   na.rm = TRUE)
+  n <- aggregate(Score0 ~ ALL, data = df, FUN = function(x) sum(!is.na(x)))
+
+  out <- merge(merge(m, s, by = "ALL", all = TRUE), n, by = "ALL", all = TRUE)
+  colnames(out) <- c("Athlete", "Mean", "SD", "n")
+
+  # If an athlete has only 1 remaining score, SD becomes NA; set to 0 (deterministic around mean)
+  out$SD[is.na(out$SD)] <- 0
+
+  # Sort by Mean descending
+  out <- out[order(-out$Mean), ]
+  rownames(out) <- NULL
+  out
+}
+
+# 3) Simulate P(gold) and P(podium) using filtered mean/SD
+win_podium_probs2 <- function(pred_df, n_sims = 50000, top_k = 25) {
+  # pred_df should have: Athlete, Mean, SD, n
+  if (nrow(pred_df) < 2) {
+    # Not enough athletes after filtering
+    if (nrow(pred_df) == 1) {
+      return(data.frame(
+        Athlete = pred_df$Athlete,
+        Mean50 = pred_df$Mean,
+        SD50   = pred_df$SD,
+        n50    = pred_df$n,
+        P_gold = 0,
+        P_podium = 0,
+        stringsAsFactors = FALSE
+      ))
+    } else {
+      return(data.frame(
+        Athlete = character(0), Mean50 = numeric(0), SD50 = numeric(0), n50 = integer(0),
+        P_gold = numeric(0), P_podium = numeric(0),
+        stringsAsFactors = FALSE
+      ))
+    }
+  }
+
+  # Keep only top 25 by Mean; everyone else gets 0%
+  pred_df <- pred_df[order(-pred_df$Mean), ]
+  pred_top <- head(pred_df, top_k)
+  pred_rest <- pred_df[(top_k + 1):nrow(pred_df), , drop = FALSE]
+  pred_rest <- pred_rest[!is.na(pred_rest$Athlete), , drop = FALSE]
+
+  A <- nrow(pred_top)
+
+  # Draw scores (bounded to 0-100), add tiny jitter to avoid ties
+  sim_mat <- matrix(rnorm(n_sims * A,
+                         mean = rep(pred_top$Mean, each = n_sims),
+                         sd   = rep(pred_top$SD,   each = n_sims)),
+                    nrow = n_sims, ncol = A, byrow = FALSE)
+
+  sim_mat <- pmin(pmax(sim_mat, 0), 100)
+  sim_mat <- sim_mat + matrix(runif(n_sims * A, -1e-8, 1e-8), nrow = n_sims)
+
+  # Determine gold and podium each sim
+  gold_idx <- max.col(sim_mat, ties.method = "random")
+
+  podium_counts <- integer(A)
+  gold_counts   <- integer(A)
+
+  gold_counts <- tabulate(gold_idx, nbins = A)
+
+  # For podium: top 3 each sim
+  top3_idx <- t(apply(sim_mat, 1, function(x) order(x, decreasing = TRUE)[1:3]))
+  podium_counts <- tabulate(as.vector(top3_idx), nbins = A)
+
+  out_top <- data.frame(
+    Athlete  = pred_top$Athlete,
+    Mean50   = pred_top$Mean,
+    SD50     = pred_top$SD,
+    n50      = pred_top$n,
+    P_gold   = 100 * gold_counts / n_sims,
+    P_podium = 100 * podium_counts / n_sims,
+    stringsAsFactors = FALSE
+  )
+
+  # Add back everyone else as 0%
+  if (nrow(pred_rest) > 0) {
+    out_rest <- data.frame(
+      Athlete  = pred_rest$Athlete,
+      Mean50   = pred_rest$Mean,
+      SD50     = pred_rest$SD,
+      n50      = pred_rest$n,
+      P_gold   = 0,
+      P_podium = 0,
+      stringsAsFactors = FALSE
+    )
+    out <- rbind(out_top, out_rest)
+  } else {
+    out <- out_top
+  }
+
+  out <- out[order(-out$Mean50), ]
+  rownames(out) <- NULL
+  out
+}
+
+# 4) Build probs2 for all 10 ski disciplines (m/w × AE/MO/HP/SS/BA)
+for (sport in sports) {
+  for (gender in genders) {
+
+    # Uses your existing normalized pivoted datasets:
+    # e.g., X_AE_ski_m_norm_WC (columns: ALL, Score0)
+    long_name <- paste0("X_", sport, "_ski_", gender, "_norm_WC")
+
+    # Summarize after filtering scores < 50
+    pred2 <- ceiling_summary(get(long_name), min_score = MIN_SCORE)
+
+    # Compute probs (top 25 only)
+    probs2 <- win_podium_probs2(pred2, n_sims = N_SIMS, top_k = 25)
+
+    # Save with requested naming: ...probs2
+    out_name <- paste0("AAA_", sport, "_ski_", gender, "_medal_probs2")
+    assign(out_name, probs2, envir = .GlobalEnv)
+  }
+}
+
+```
+
+medal prob3
+```{r}
+# -----------------------------
+# probs3: use TOP 3 scores only
+# -----------------------------
+
+sports  <- c("AE", "MO", "HP", "SS", "BA")
+genders <- c("m", "w")
+
+# Compute athlete-level (top-k) mean/sd from a long df: columns ALL, Score0
+athlete_topk_stats <- function(df_long, k = 3) {
+  df_long <- df_long[!is.na(df_long$ALL) & !is.na(df_long$Score0), , drop = FALSE]
+  if (nrow(df_long) == 0) return(data.frame())
+
+  split_scores <- split(df_long$Score0, df_long$ALL)
+
+  out <- lapply(names(split_scores), function(a) {
+    s <- sort(split_scores[[a]], decreasing = TRUE)
+    s_top <- head(s, k)
+    n <- length(s_top)
+    mu <- mean(s_top)
+    sdv <- if (n >= 2) sd(s_top) else 0
+    data.frame(ALL = a, n_top = n, mu_top = mu, sd_top = sdv, stringsAsFactors = FALSE)
+  })
+
+  do.call(rbind, out)
+}
+
+# Monte Carlo win/podium probabilities using Normal(mu, sd)
+# Applies: sd floor for realism, and top-25 cutoff (others get 0 probs)
+win_podium_probs_topk <- function(df_long, k = 3, sims = 20000, sd_floor = 3, topN = 25) {
+  stats <- athlete_topk_stats(df_long, k = k)
+  stats <- stats[!is.na(stats$mu_top), , drop = FALSE]
+
+  if (nrow(stats) < 2) stop("Need at least 2 athletes to compute win probabilities.")
+
+  # rank by top-k mean and apply topN cutoff
+  stats <- stats[order(-stats$mu_top), ]
+  stats$rank_mu <- seq_len(nrow(stats))
+  in_top <- stats$rank_mu <= topN
+
+  mu <- stats$mu_top
+  sdv <- pmax(stats$sd_top, sd_floor)
+
+  # simulate
+  gold_ct  <- numeric(nrow(stats))
+  pod_ct   <- numeric(nrow(stats))
+
+  for (b in seq_len(sims)) {
+    draws <- rnorm(nrow(stats), mean = mu, sd = sdv)
+
+    # gold = max draw
+    i_gold <- which.max(draws)
+    gold_ct[i_gold] <- gold_ct[i_gold] + 1
+
+    # podium = top 3 draws
+    top3_idx <- order(draws, decreasing = TRUE)[1:min(3, length(draws))]
+    pod_ct[top3_idx] <- pod_ct[top3_idx] + 1
+  }
+
+  stats$P_gold   <- 100 * gold_ct / sims
+  stats$P_podium <- 100 * pod_ct  / sims
+
+  # apply the "outside top 25 -> 0%" rule
+  stats$P_gold[!in_top]   <- 0
+  stats$P_podium[!in_top] <- 0
+
+  # nice output
+  stats[, c("ALL", "n_top", "mu_top", "sd_top", "rank_mu", "P_gold", "P_podium")]
+}
+
+# Build all 10 probs3 dfs from the normalized pivoted datasets: X_<SPORT>_ski_<m/w>_norm_WC
+for (sport in sports) {
+  for (gender in genders) {
+    src_name  <- paste0("X_", sport, "_ski_", gender, "_norm_WC")
+    out_name  <- paste0("AAA_", sport, "_ski_", gender, "_medal_probs3")
+
+    df_long <- get(src_name, envir = .GlobalEnv)
+
+    assign(
+      out_name,
+      win_podium_probs_topk(df_long, k = 3, sims = 20000, sd_floor = 3, topN = 25),
+      envir = .GlobalEnv
+    )
+  }
+}
+
+
+
+
+```
+
+
+
+OOOOOlympics
+```{r}
+ski_competitors <- c(
+  "ROTH Noe",
+  "WERNER Pirmin",
+  "DEHLINGER Quinn",
+  "LILLIS Christopher",
+  "QI Guangpu",
+  "DUCHAINE Alexandre",
+  "OKIPNIUK Oleksandr",
+  "WANG Xindi",
+  "KOTOVSKYI Dmytro",
+  "TIANMA Li",
+  "CURRAN Connor",
+  "FONTAINE Miha",
+  "KUZNIETSOV Maksym",
+  "FLANAGAN Reilly",
+  "NOVAK Nicholas",
+  "IGARASHI Haruto",
+  "HAVRIUK Yan",
+  "HUSKOVA Hanna",
+  "XU Mengtao",
+  "KONG Fanyu",
+  "SCOTT Danielle",
+  "PEEL Laura",
+  "THENAULT Marion",
+  "CHEN Meiting",
+  "KUHN Kaila",
+  "SHAO Qi",
+  "FRIGO Airleigh",
+  "WILLCOX Abbey",
+  "WEISS Emma",
+  "NOVOSAD Anastasiya",
+  "BRYKINA Anhelina",
+  "VINECKI Winter",
+  "MERKOVA Adela",
+  "IGARASHI Runa",
+  "YABLONSKA Diana",
+  "KINGSBURY Mikaël",
+  "GRAHAM Matt",
+  "HORISHIMA Ikuma",
+  "WALLBERG Walter",
+  "PAGE Nick",
+  "VIEL Julien",
+  "CAVET Benjamin",
+  "GRAVENFORS Filip",
+  "WOODS Cooper",
+  "JUNG Daeyoon",
+  "VAILLANCOURT Elliot",
+  "VIERELA Severi",
+  "STEGFELDT Rasmus",
+  "KROUPA Matyas",
+  "AHVENAINEN Akseli",
+  "PENTTALA Olli",
+  "MOUILLE Thibaud",
+  "JEANNESSON Mateo",
+  "FUJIKI Goshin",
+  "LEE Yoonseung",
+  "WALCZYK Dylan",
+  "MICKEL Charlie",
+  "LAFFONT Perrine",
+  "KAUF Jaelin",
+  "ANTHONY Jakara",
+  "SCHWINGHAMMER Maia",
+  "JOHNSON Tess",
+  "GIACCIO Olivia",
+  "TOMITAKA Hinako",
+  "YANAGIMOTO Rino",
+  "CABROL Camille",
+  "DESMARAIS-GILBERT Laurianne",
+  "SCHOFIELD Makayla Gerken",
+  "WILSON Charlotte",
+  "BOSCO Emma",
+  "CARROLL Avital",
+  "RAMSAUER Katharina",
+  "YANG Ya",
+  "SCHOFIELD Makayla Gerken",
+  "FUJIKI Hina",
+  "MALHERBE Malica",
+  "LUNDHOLM Elis",
+  "FERREIRA Alex",
+  "HESS Hunter",
+  "IRVING Birk",
+  "GOEPPER Nick",
+  "MACKAY Brendan",
+  "MELVILLE IVES Finley",
+  "HARROLD Luke",
+  "MARINEAU Dylan",
+  "LONGINO Andrew",
+  "SILDARU Henry",
+  "MATSUURA Toma",
+  "LEE Seung Hun",
+  "HARRINGTON Ben",
+  "BRIGUET Robin",
+  "BAUMGARTNER Sam",
+  "SU Shuaibing",
+  "SUN Jingbo",
+  "YANG Kaiyue",
+  "KENWORTHY Gus",
+  "RICHARDS Liam",
+  "GU AILING Eileen",
+  "ATKIN Zoe",
+  "LI Fanghui",
+  "SHARPE Cassie",
+  "KARKER Rachael",
+  "ZHANG Kexin",
+  "BROWN Indra",
+  "FRASER Amy",
+  "LIU Yishan",
+  "IRVING Svea",
+  "GLENNIE Dillan",
+  "GRAY Kate",
+  "JACOBS Riley",
+  "CAKMAKLI Sabrina",
+  "KIM Daeun",
+  "THOMAS Mischa",
+  "SILDARU Kelly",
+  "MEENTALO Grete-Mia",
+  "KIRIYAMA Nanaho",
+  "BARUGH Anja",
+  "RUUD Birk",
+  "HARRINGTON Luca",
+  "PODMILSAK Troy",
+  "FOREHAND Mac",
+  "HALL Alexander",
+  "TABANELLI Miro",
+  "SVANCER Matej",
+  "RAGETTLI Andri",
+  "SYRJÄ Elias",
+  "HARLAUT Henrik",
+  "DESCHAMPS Dylan",
+  "FROSTAD Tormod",
+  "SAMNOEY Ulrik",
+  "KOIVISTO Kuura",
+  "ROCHE Matias",
+  "SIVIGNON Timothe",
+  "SAMNOEY Ulrik",
+  "BARCLAY Ben",
+  "BOESCH Fabian",
+  "GUBSER Kim",
+  "SILDARU Henry",
+  "GU Eileen",
+  "TABANELLI Flora",
+  "OLDHAM Megan",
+  "GREMAUD Mathilde",
+  "KARAVA Anni",
+  "MUIR Kirsty",
+  "HOEFFLIN Sarah",
+  "URNESS Naomi",
+  "LIU Mengting",
+  "EIE Sandra",
+  "ASSELIN Olivia",
+  "MOHR Muriel",
+  "WOLF Lara",
+  "HAN Linshan",
+  "YANG Ruyi",
+  "DUMONT Zanella",
+  "KOGA Yuna",
+  "ANOUK Andraska",
+  "TANNO Giulia",
+  "KOTSAR Kateryna",
+  "THOMAS Daisy",
+  "GASKELL Elena",
+  "KONDO Kokone",
+  "ANDREWS Ruby Star",
+  "TROTTER Sylvia",
+  "KRUMME Avery",
+  "HAMILL Marin",
+  "REGEZ Ryan",
+  "HOWDEN Reece",
+  "FIVA Alex",
+  "WILMSMANN Florian",
+  "DEROMEDIS Simone",
+  "MOBAERG David",
+  "KERGOMARD Youri Duplessis",
+  "SUGAI Ryo",
+  "MOBAERG Erik",
+  "DRURY Kevin",
+  "TCHIKNAVORIAN Terence",
+  "KAPPACHER Adam",
+  "SCHMIDT Jared",
+  "TCHIKNAVORIAN Melvin",
+  "TOMASONI Federico",
+  "FURUNO Satoshi",
+  "BAUR Tobias",
+  "DAVIES Oliver",
+  "HRONEK Tim",
+  "RENN Cornel",
+  "ZUECH Dominik",
+  "ZORZI Edoardo",
+  "SMITH Fanny",
+  "NÄSLUND Sandra",
+  "THOMPSON Marielle",
+  "PHELAN Brittany",
+  "MAIER Daniela",
+  "OFNER Katrin",
+  "SABBATEL Marielle Berger",
+  "AUBERT Jade Grillet",
+  "ERRARD Anouck",
+  "BAZ Mylene Ballet",
+  "GALLI Jole",
+  "GANTENBEIN Talina",
+  "GALLI Jole",
+  "SCHMIDT Hannah",
+  "FOEDERMAYR Christina",
+  "WHEATLEY Kyra",
+  "JOFFROY Stephanie",
+  "WENWEN Li",
+  "LACK Saskja",
+  "NAKANISHI Lin",
+  "MUKOGAWA Sakurako",
+  "MOBAERG Linnea",
+  "JIAXU Sun",
+  "IRVING Lewis",
+  "HUSKOVA Hanna",
+  "VINECKI Winter",
+  "WEISS Emma",
+  "TANNER Tasia",
+  "DOSSA Kyra",
+  "POPOVYCH Nelli",
+  "KOZOMARA Lina",
+  "YATSIUK Oksana",
+  "HARVEY Jackson",
+  "NISHIZAWA Taketo",
+  "KARJALAINEN Rasmus",
+  "KOEHLER Ashley",
+  "LINTON Jessica",
+  "NAKAO Haruka",
+  "DUAUX Marie",
+  "YUN Shin-Ee",
+  "LEGNAVSKY Gustav",
+  "BREEN Cooper",
+  "MAHARAVO Vincent",
+  "SHENG Haipeng",
+  "MOON Heesung",
+  "WINTERBERGER Abby",
+  "LEE Soyoung",
+  "KHASHYRBAYEV Sherzod",
+  "ASSAN Assylkhan",
+  "RAIMKULOV Dinmukhammed",
+  "ALDABERGENOVA Zhanbota",
+  "KOLMAKOV Pavel",
+  "GORODKO Anastassiya",
+  "GALYSHEVA Yuliya",
+  "AMRENOVA Ayaulym",
+  "NEWBY Brendan",
+  "BARUGH Anja",
+  "CRANE-MAUZY Jeanee",
+  "Noe ROTH",
+  "Pirmin WERNER",
+  "Quinn DEHLINGER",
+  "Christopher LILLIS",
+  "Guangpu QI",
+  "Alexandre DUCHAINE",
+  "Oleksandr OKIPNIUK",
+  "Xindi WANG",
+  "Dmytro KOTOVSKYI",
+  "Li TIANMA",
+  "Connor CURRAN",
+  "Miha FONTAINE",
+  "Maksym KUZNIETSOV",
+  "Reilly FLANAGAN",
+  "Nicholas NOVAK",
+  "Haruto IGARASHI",
+  "Yan HAVRIUK",
+  "Hanna HUSKOVA",
+  "Mengtao XU",
+  "Fanyu KONG",
+  "Danielle SCOTT",
+  "Laura PEEL",
+  "Marion THENAULT",
+  "Meiting CHEN",
+  "Kaila KUHN",
+  "Qi SHAO",
+  "Airleigh FRIGO",
+  "Abbey WILLCOX",
+  "Emma WEISS",
+  "Anastasiya NOVOSAD",
+  "Anhelina BRYKINA",
+  "Winter VINECKI",
+  "Adela MERKOVA",
+  "Runa IGARASHI",
+  "Diana YABLONSKA",
+  "Mikaël KINGSBURY",
+  "Matt GRAHAM",
+  "Ikuma HORISHIMA",
+  "Walter WALLBERG",
+  "Nick PAGE",
+  "Julien VIEL",
+  "Benjamin CAVET",
+  "Filip GRAVENFORS",
+  "Cooper WOODS",
+  "Daeyoon JUNG",
+  "Elliot VAILLANCOURT",
+  "Severi VIERELA",
+  "Rasmus STEGFELDT",
+  "Matyas KROUPA",
+  "Akseli AHVENAINEN",
+  "Olli PENTTALA",
+  "Thibaud MOUILLE",
+  "Mateo JEANNESSON",
+  "Goshin FUJIKI",
+  "Yoonseung LEE",
+  "Dylan WALCZYK",
+  "Charlie MICKEL",
+  "Perrine LAFFONT",
+  "Jaelin KAUF",
+  "Jakara ANTHONY",
+  "Maia SCHWINGHAMMER",
+  "Tess JOHNSON",
+  "Olivia GIACCIO",
+  "Hinako TOMITAKA",
+  "Rino YANAGIMOTO",
+  "Camille CABROL",
+  "Laurianne DESMARAIS-GILBERT",
+  "Makayla Gerken SCHOFIELD",
+  "Charlotte WILSON",
+  "Emma BOSCO",
+  "Avital CARROLL",
+  "Katharina RAMSAUER",
+  "Ya YANG",
+  "Makayla Gerken SCHOFIELD",
+  "Hina FUJIKI",
+  "Malica MALHERBE",
+  "Elis LUNDHOLM",
+  "Alex FERREIRA",
+  "Hunter HESS",
+  "Birk IRVING",
+  "Nick GOEPPER",
+  "Brendan MACKAY",
+  "Finley Melville IVES",
+  "Luke HARROLD",
+  "Dylan MARINEAU",
+  "Andrew LONGINO",
+  "Henry SILDARU",
+  "Toma MATSUURA",
+  "Seung Hun LEE",
+  "Ben HARRINGTON",
+  "Robin BRIGUET",
+  "Sam BAUMGARTNER",
+  "Shuaibing SU",
+  "Jingbo SUN",
+  "Kaiyue YANG",
+  "Gus KENWORTHY",
+  "Liam RICHARDS",
+  "AILING Eileen GU",
+  "Zoe ATKIN",
+  "Fanghui LI",
+  "Cassie SHARPE",
+  "Rachael KARKER",
+  "Kexin ZHANG",
+  "Indra BROWN",
+  "Amy FRASER",
+  "Yishan LIU",
+  "Svea IRVING",
+  "Dillan GLENNIE",
+  "Kate GRAY",
+  "Riley JACOBS",
+  "Sabrina CAKMAKLI",
+  "Daeun KIM",
+  "Mischa THOMAS",
+  "Kelly SILDARU",
+  "Grete-Mia MEENTALO",
+  "Nanaho KIRIYAMA",
+  "Anja BARUGH",
+  "Birk RUUD",
+  "Luca HARRINGTON",
+  "Troy PODMILSAK",
+  "Mac FOREHAND",
+  "Alexander HALL",
+  "Miro TABANELLI",
+  "Matej SVANCER",
+  "Andri RAGETTLI",
+  "Elias SYRJÄ",
+  "Henrik HARLAUT",
+  "Dylan DESCHAMPS",
+  "Tormod FROSTAD",
+  "Ulrik SAMNOEY",
+  "Kuura KOIVISTO",
+  "Matias ROCHE",
+  "Timothe SIVIGNON",
+  "Ulrik SAMNOEY",
+  "Ben BARCLAY",
+  "Fabian BOESCH",
+  "Kim GUBSER",
+  "Henry SILDARU",
+  "Eileen GU",
+  "Flora TABANELLI",
+  "Megan OLDHAM",
+  "Mathilde GREMAUD",
+  "Anni KARAVA",
+  "Kirsty MUIR",
+  "Sarah HOEFFLIN",
+  "Naomi URNESS",
+  "Mengting LIU",
+  "Sandra EIE",
+  "Olivia ASSELIN",
+  "Muriel MOHR",
+  "Lara WOLF",
+  "Linshan HAN",
+  "Ruyi YANG",
+  "Zanella DUMONT",
+  "Yuna KOGA",
+  "Andraska ANOUK",
+  "Giulia TANNO",
+  "Kateryna KOTSAR",
+  "Daisy THOMAS",
+  "Elena GASKELL",
+  "Kokone KONDO",
+  "Ruby Star ANDREWS",
+  "Sylvia TROTTER",
+  "Avery KRUMME",
+  "Marin HAMILL",
+  "Ryan REGEZ",
+  "Reece HOWDEN",
+  "Alex FIVA",
+  "Florian WILMSMANN",
+  "Simone DEROMEDIS",
+  "David MOBAERG",
+  "Youri Duplessis KERGOMARD",
+  "Ryo SUGAI",
+  "Erik MOBAERG",
+  "Kevin DRURY",
+  "Terence TCHIKNAVORIAN",
+  "Adam KAPPACHER",
+  "Jared SCHMIDT",
+  "Melvin TCHIKNAVORIAN",
+  "Federico TOMASONI",
+  "Satoshi FURUNO",
+  "Tobias BAUR",
+  "Oliver DAVIES",
+  "Tim HRONEK",
+  "Cornel RENN",
+  "Dominik ZUECH",
+  "Edoardo ZORZI",
+  "Fanny SMITH",
+  "Sandra NÄSLUND",
+  "Marielle THOMPSON",
+  "Brittany PHELAN",
+  "Daniela MAIER",
+  "Katrin OFNER",
+  "Marielle Berger SABBATEL",
+  "Jade Grillet AUBERT",
+  "Anouck ERRARD",
+  "Mylene Ballet BAZ",
+  "Jole GALLI",
+  "Talina GANTENBEIN",
+  "Jole GALLI",
+  "Hannah SCHMIDT",
+  "Christina FOEDERMAYR",
+  "Kyra WHEATLEY",
+  "Stephanie JOFFROY",
+  "Li WENWEN",
+  "Saskja LACK",
+  "Lin NAKANISHI",
+  "Sakurako MUKOGAWA",
+  "Linnea MOBAERG",
+  "Sun JIAXU",
+  "Lewis IRVING",
+  "Hanna HUSKOVA",
+  "Winter VINECKI",
+  "Emma WEISS",
+  "Tasia TANNER",
+  "Kyra DOSSA",
+  "Nelli POPOVYCH",
+  "Lina KOZOMARA",
+  "Oksana YATSIUK",
+  "Jackson HARVEY",
+  "Taketo NISHIZAWA",
+  "Rasmus KARJALAINEN",
+  "Ashley KOEHLER",
+  "Jessica LINTON",
+  "Haruka NAKAO",
+  "Marie DUAUX",
+  "Shin-Ee YUN",
+  "Gustav LEGNAVSKY",
+  "Cooper BREEN",
+  "Vincent MAHARAVO",
+  "Haipeng SHENG",
+  "Heesung MOON",
+  "Abby WINTERBERGER",
+  "Soyoung LEE",
+  "Sherzod KHASHYRBAYEV",
+  "Assylkhan ASSAN",
+  "Dinmukhammed RAIMKULOV",
+  "Zhanbota ALDABERGENOVA",
+  "Pavel KOLMAKOV",
+  "Anastassiya GORODKO",
+  "Yuliya GALYSHEVA",
+  "Ayaulym AMRENOVA",
+  "Brendan NEWBY",
+  "Anja BARUGH",
+  "Jeanee CRANE-MAUZY"
+)
+
+
+
+assert_cols <- function(df, cols) {
+  missing <- setdiff(cols, colnames(df))
+  if (length(missing) > 0) stop("Missing columns: ", paste(missing, collapse = ", "))
+  TRUE
+}
+
+safe_get <- function(name) {
+  if (exists(name, envir = .GlobalEnv)) get(name, envir = .GlobalEnv) else NULL
+}
+
+trim_ws <- function(x) gsub("^\\s+|\\s+$", "", x)
+
+canon_name <- function(x) trim_ws(as.character(x))
+
+filter_competitors <- function(df, competitors) {
+  assert_cols(df, c("ALL", "Score0"))
+  df$ALL <- canon_name(df$ALL)
+  df <- df[!is.na(df$ALL) & df$ALL != "" & !is.na(df$Score0), , drop = FALSE]
+  df[df$ALL %in% competitors, , drop = FALSE]
+}
+
+apply_floor50 <- function(df) {
+  df[df$Score0 >= 50, , drop = FALSE]
+}
+
+keep_top3_per_athlete <- function(df) {
+  df <- df[order(df$ALL, -df$Score0), , drop = FALSE]
+  idx <- ave(df$Score0, df$ALL, FUN = seq_along) <= 3
+  df[idx, , drop = FALSE]
+}
+
+summarize_mu_sigma <- function(df) {
+  if (is.null(df) || nrow(df) == 0) {
+    return(data.frame(ALL = character(0), mu = numeric(0), sigma = numeric(0), n = integer(0)))
+  }
+  agg_mu <- aggregate(Score0 ~ ALL, data = df, FUN = mean, na.rm = TRUE)
+  agg_sd <- aggregate(Score0 ~ ALL, data = df, FUN = function(x) stats::sd(x, na.rm = TRUE))
+  agg_n  <- aggregate(Score0 ~ ALL, data = df, FUN = function(x) sum(!is.na(x)))
+  out <- merge(merge(agg_mu, agg_sd, by = "ALL", suffixes = c("_mu", "_sd")), agg_n, by = "ALL")
+  colnames(out) <- c("ALL", "mu", "sigma", "n")
+  out$sigma[is.na(out$sigma)] <- 0
+  out
+}
+
+medal_probs_from_mu_sigma <- function(params, n_sims = 50000, seed = 123) {
+  if (is.null(params) || nrow(params) < 2) {
+    return(data.frame(
+      Athlete = if (!is.null(params) && nrow(params) == 1) params$ALL else character(0),
+      mu = if (!is.null(params) && nrow(params) == 1) params$mu else numeric(0),
+      sigma = if (!is.null(params) && nrow(params) == 1) params$sigma else numeric(0),
+      n = if (!is.null(params) && nrow(params) == 1) params$n else integer(0),
+      P_gold = if (!is.null(params) && nrow(params) == 1) 1 else numeric(0),
+      P_podium = if (!is.null(params) && nrow(params) == 1) 1 else numeric(0),
+      stringsAsFactors = FALSE
+    ))
+  }
+
+  set.seed(seed)
+  A <- params$ALL
+  mu <- params$mu
+  sdv <- params$sigma
+
+  eps <- 1e-9
+  sims <- sapply(seq_along(A), function(i) {
+    rnorm(n_sims, mean = mu[i], sd = sdv[i]) + runif(n_sims, -eps, eps)
+  })
+  colnames(sims) <- A
+
+  winner_idx <- max.col(sims, ties.method = "random")
+
+  gold_counts <- tabulate(winner_idx, nbins = ncol(sims))
+  P_gold <- gold_counts / n_sims
+
+  top3_idx <- t(apply(sims, 1, function(x) order(x, decreasing = TRUE)[1:3]))
+  podium_counts <- tabulate(as.vector(top3_idx), nbins = ncol(sims))
+  P_podium <- podium_counts / n_sims
+
+  out <- data.frame(
+    Athlete = A,
+    mu = mu,
+    sigma = sdv,
+    n = params$n,
+    P_gold = P_gold,
+    P_podium = P_podium,
+    stringsAsFactors = FALSE
+  )
+  out <- out[order(-out$P_gold, -out$P_podium, -out$mu), , drop = FALSE]
+  rownames(out) <- NULL
+  out
+}
+
+apply_top25_zero <- function(prob_df) {
+  if (is.null(prob_df) || nrow(prob_df) == 0) return(prob_df)
+  ord <- order(-prob_df$mu, -prob_df$P_gold, -prob_df$P_podium)
+  prob_df <- prob_df[ord, , drop = FALSE]
+  if (nrow(prob_df) > 25) {
+    prob_df$P_gold[26:nrow(prob_df)] <- 0
+    prob_df$P_podium[26:nrow(prob_df)] <- 0
+  }
+  prob_df <- prob_df[order(-prob_df$P_gold, -prob_df$P_podium, -prob_df$mu), , drop = FALSE]
+  rownames(prob_df) <- NULL
+  prob_df
+}
+
+run_medal_probs_variant <- function(df_name_norm_wc, competitors,
+                                   variant = c("probs1", "probs2", "probs3"),
+                                   n_sims = 50000, seed = 123) {
+  variant <- match.arg(variant)
+  df <- safe_get(df_name_norm_wc)
+  if (is.null(df) || nrow(df) == 0) {
+    return(data.frame())
+  }
+
+  df <- filter_competitors(df, competitors)
+
+  if (nrow(df) == 0) {
+    return(data.frame())
+  }
+
+  if (variant == "probs2") {
+    df <- apply_floor50(df)
+  } else if (variant == "probs3") {
+    df <- keep_top3_per_athlete(df)
+  }
+
+  params <- summarize_mu_sigma(df)
+  prob_df <- medal_probs_from_mu_sigma(params, n_sims = n_sims, seed = seed)
+  prob_df <- apply_top25_zero(prob_df)
+  prob_df
+}
+
+sports <- c("AE", "MO", "HP", "SS", "BA")
+genders <- c("m", "w")
+
+N_SIMS <- 50000
+SEED0  <- 777
+
+for (sport in sports) {
+  for (gender in genders) {
+
+    base_norm_wc <- paste0("X_", sport, "_ski_", gender, "_norm_WC")
+
+    # outputs
+    out1 <- paste0("AAAA_", sport, "_ski_", gender, "_medal_probs1_OOO")
+    out2 <- paste0("AAAA_", sport, "_ski_", gender, "_medal_probs2_OOO")
+    out3 <- paste0("AAAA_", sport, "_ski_", gender, "_medal_probs3_OOO")
+
+    if (!exists(base_norm_wc, envir = .GlobalEnv)) {
+      assign(out1, data.frame(), envir = .GlobalEnv)
+      assign(out2, data.frame(), envir = .GlobalEnv)
+      assign(out3, data.frame(), envir = .GlobalEnv)
+      next
+    }
+
+    probs1 <- run_medal_probs_variant(base_norm_wc, ski_competitors, "probs1", n_sims = N_SIMS, seed = SEED0 + 1)
+    probs2 <- run_medal_probs_variant(base_norm_wc, ski_competitors, "probs2", n_sims = N_SIMS, seed = SEED0 + 2)
+    probs3 <- run_medal_probs_variant(base_norm_wc, ski_competitors, "probs3", n_sims = N_SIMS, seed = SEED0 + 3)
+
+    assign(out1, probs1, envir = .GlobalEnv)
+    assign(out2, probs2, envir = .GlobalEnv)
+    assign(out3, probs3, envir = .GlobalEnv)
+  }
+}
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
